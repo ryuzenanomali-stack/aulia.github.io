@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Galeri Rahasia</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #12051f;
+      overflow: hidden;
+      color: #fff;
+      position: relative;
+    }
+
+    /* Background Ungu Animasi */
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      z-index: 0;
+      animation: floatBlob 12s infinite alternate ease-in-out;
+    }
+    .blob-1 { width: 300px; height: 300px; background: #7c3aed; top: -10%; left: -10%; }
+    .blob-2 { width: 400px; height: 400px; background: #4c1d95; bottom: -20%; right: -10%; animation-delay: -5s; }
+    .blob-3 { width: 250px; height: 250px; background: #c026d3; top: 40%; left: 30%; animation-delay: -2s; opacity: 0.4; }
+
+    @keyframes floatBlob {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, 20px) scale(1.1); }
+      100% { transform: translate(-20px, -30px) scale(0.9); }
+    }
+
+    /* Dekorasi */
+    .deco-plus {
+      position: absolute; top: 10%; right: 10%; font-size: 10rem; font-weight: 900;
+      color: rgba(255, 255, 255, 0.03); transform: rotate(15deg); filter: blur(4px); z-index: 1; pointer-events: none;
+    }
+    .barcode {
+      position: absolute; bottom: 5%; right: 5%; width: 80px; height: 30px;
+      background: repeating-linear-gradient(to right, rgba(255,255,255,0.2) 0, rgba(255,255,255,0.2) 2px, transparent 2px, transparent 4px, rgba(255,255,255,0.2) 4px, rgba(255,255,255,0.2) 5px, transparent 5px, transparent 8px);
+      z-index: 1; opacity: 0.5; pointer-events: none;
+    }
+
+    /* Layar 1: Input Nama */
+    .screen-gatekeeper {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 10;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .screen-gatekeeper.hide { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+    .gatekeeper-box {
+      background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px 20px; border-radius: 24px;
+      text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      width: 85%; max-width: 350px; animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .gatekeeper-box h1 { font-size: 1.3rem; letter-spacing: 2px; color: #c4b5fd; margin-bottom: 10px; }
+    .gatekeeper-box p { font-size: 0.85rem; color: #a78bfa; margin-bottom: 20px; }
+
+    .input-group { position: relative; margin-bottom: 20px; }
+    .input-group input {
+      width: 100%; padding: 15px; border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(167, 139, 250, 0.3);
+      color: #fff; font-size: 1rem; font-family: inherit; outline: none;
+      transition: border 0.3s ease, box-shadow 0.3s ease; text-align: center;
+    }
+    .input-group input:focus { border-color: #a78bfa; box-shadow: 0 0 15px rgba(167, 139, 250, 0.3); }
+    .input-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+    .btn-masuk {
+      width: 100%; padding: 15px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff;
+      font-size: 1rem; font-weight: bold; font-family: inherit; letter-spacing: 1px;
+      cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-masuk:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4); }
+    .btn-masuk:active { transform: translateY(0); }
+
+    /* Layar 2: Loading */
+    .screen-loading {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 20;
+      background: #12051f; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .screen-loading.show { opacity: 1; pointer-events: all; }
+
+    .loader-ring {
+      width: 50px; height: 50px; border-radius: 50%;
+      border: 3px solid rgba(167, 139, 250, 0.2);
+      border-top-color: #c4b5fd; border-right-color: #c026d3;
+      animation: spin 1s linear infinite; margin-bottom: 20px;
+    }
+    .loading-text {
+      font-size: 0.8rem; letter-spacing: 3px; color: #a78bfa; text-transform: uppercase;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Layar 3: Galeri */
+    .screen-galeri {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 5; 
+      opacity: 0; pointer-events: none; transform: scale(0.95); 
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      padding: 20px; overflow-y: auto;
+    }
+    .screen-galeri.show { opacity: 1; pointer-events: all; transform: scale(1); }
+
+    .galeri-wrapper {
+      display: flex; flex-direction: column; align-items: center; 
+      justify-content: center; gap: 25px; width: 100%; max-width: 400px;
+    }
+
+    /* Strip Foto */
+    .photo-strip {
+      display: flex; flex-direction: column; background: #0f0a1a;
+      padding: 12px 10px; border-radius: 20px; gap: 8px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
+      transform: rotate(-1deg); transition: transform 0.4s ease;
+      width: 100%; max-width: 220px; 
+    }
+    .photo-strip:hover { transform: rotate(0deg) scale(1.02); }
+
+    .photo-frame {
+      width: 100%; 
+      aspect-ratio: 4 / 5;
+      background: #1a1a1a;
+      border-radius: 10px; overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    
+    .photo-frame img {
+      width: 100%; height: 100%; 
+      object-fit: cover;
+      object-position: center;
+      filter: contrast(1.1) saturate(0.9) sepia(0.1); 
+      transition: 0.3s ease;
+      z-index: 2;
+    }
+    
+    .photo-frame:hover img { filter: contrast(1) saturate(1.1) sepia(0); transform: scale(1.05); }
+
+    /* Status teks di dalam foto (Loading / Error) */
+    .img-status {
+      position: absolute; font-size: 0.75rem; color: #666; z-index: 1; text-align: center;
+      letter-spacing: 1px; animation: pulse 1.5s infinite;
+    }
+
+    /* Info User */
+    .user-info-box {
+      background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+      padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center;
+      width: 100%; max-width: 280px;
+    }
+    .user-info-box h2 {
+      font-size: 0.9rem; margin-bottom: 10px; letter-spacing: 2px; color: #c4b5fd;
+      border-bottom: 1px solid rgba(196, 181, 253, 0.3); padding-bottom: 10px;
+    }
+    .user-info-box .name-display {
+      font-size: 1.2rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    @media (min-width: 400px) {
+      .photo-strip { max-width: 250px; }
+      .gatekeeper-box { padding: 40px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+  
+  <div class="deco-plus">+</div>
+  <div class="barcode"></div>
+
+  <!-- ================= LAYAR 1: INPUT NAMA ================= -->
+  <div class="screen-gatekeeper" id="screenGatekeeper">
+    <div class="gatekeeper-box">
+      <h1>AKSES GALERI</h1>
+      <p>Masukkan nama kamu untuk lanjut</p>
+      
+      <div class="input-group">
+        <input type="text" id="inputNama" placeholder="Ketik nama..." autocomplete="off">
+      </div>
+      
+      <button class="btn-masuk" id="btnMasuk">MASUK</button>
+    </div>
+  </div>
+
+  <!-- ================= LAYAR 2: LOADING ================= -->
+  <div class="screen-loading" id="screenLoading">
+    <div class="loader-ring"></div>
+    <div class="loading-text" id="loadingText">Membuka Galeri...</div>
+  </div>
+
+  <!-- ================= LAYAR 3: GALERI UTAMA ================= -->
+  <div class="screen-galeri" id="screenGaleri">
+    <div class="galeri-wrapper">
+      
+      <div class="photo-strip">
+        <!-- FOTO 1 -->
+        <div class="photo-frame">
+          <span class="img-status">Memuat...</span>
+          <img src="https://i.top4top.io/p_39770uw7h1.jpg" alt="Foto 1" 
+               onload="this.previousElementSibling.style.display='none'" 
+               onerror="this.style.display='none'; this.previousElementSibling.innerHTML='Foto Error'; this.previousElementSibling.style.color='#ef4444'; this.previousElementSibling.style.animation='none';">
+        </div>
+        <!-- FOTO 2 -->
+        <div class="photo-frame">
+          <span class="img-status">Memuat...</span>
+          <img src="https://h.top4top.io/p_39770e1cc1.jpg" alt="Foto 2" 
+               onload="this.previousElementSibling.style.display='none'" 
+               onerror="this.style.display='none'; this.previousElementSibling.innerHTML='Foto Error'; this.previousElementSibling.style.color='#ef4444'; this.previousElementSibling.style.animation='none';">
+        </div>
+        <!-- FOTO 3 -->
+        <div class="photo-frame">
+          <span class="img-status">Memuat...</span>
+          <img src="https://g.top4top.io/p_39772z7aq1.jpg" alt="Foto 3" 
+               onload="this.previousElementSibling.style.display='none'" 
+               onerror="this.style.display='none'; this.previousElementSibling.innerHTML='Foto Error'; this.previousElementSibling.style.color='#ef4444'; this.previousElementSibling.style.animation='none';">
+        </div>
+      </div>
+
+      <div class="user-info-box">
+        <h2>SELAMAT DATANG</h2>
+        <div class="name-display">
+          <span>👤</span> 
+          <span id="displayNama">User</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const screenGatekeeper = document.getElementById('screenGatekeeper');
+    const screenLoading = document.getElementById('screenLoading');
+    const screenGaleri = document.getElementById('screenGaleri');
+    
+    const inputNama = document.getElementById('inputNama');
+    const btnMasuk = document.getElementById('btnMasuk');
+    const displayNama = document.getElementById('displayNama');
+    const loadingText = document.getElementById('loadingText');
+
+    function prosesMasuk() {
+      const nama = inputNama.value.trim();
+
+      if (nama === "") {
+        inputNama.style.border = "1px solid #ef4444";
+        inputNama.placeholder = "Nama tidak boleh kosong!";
+        setTimeout(() => {
+          inputNama.style.border = "1px solid rgba(167, 139, 250, 0.3)";
+          inputNama.placeholder = "Ketik nama...";
+        }, 2000);
+        return;
+      }
+
+      screenGatekeeper.classList.add('hide');
+
+      setTimeout(() => {
+        screenLoading.classList.add('show');
+        setTimeout(() => { loadingText.innerText = "Menyiapkan foto..."; }, 700);
+        setTimeout(() => { loadingText.innerText = "Hampir selesai..."; }, 1400);
+      }, 400);
+
+      setTimeout(() => {
+        screenLoading.classList.remove('show');
+        screenGaleri.classList.add('show');
+        displayNama.innerText = nama;
+      }, 2200); 
+    }
+
+    btnMasuk.addEventListener('click', prosesMasuk);
+    inputNama.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        prosesMasuk();
+      }
+    });
+  </script>
+
+</body>
+</html>
